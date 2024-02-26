@@ -8,7 +8,12 @@
       flake = false;
     };
   };
-  outputs = { self, nixpkgs, flake-utils, ... }@inputs:
+  outputs = {
+    self,
+    nixpkgs,
+    flake-utils,
+    ...
+  } @ inputs:
     flake-utils.lib.eachDefaultSystem (system: rec {
       nixosConfigurations = nixpkgs.lib.nixosSystem {
         specialArgs = {
@@ -16,17 +21,19 @@
         };
         modules = [
           # system
-          ({ ... }: {
+          ({...}: {
             services.openssh.enable = true;
-            users.users.root.openssh.authorizedKeys.keyFiles = [ inputs.authorized-keys ];
+            users.users.root.openssh.authorizedKeys.keyFiles = [inputs.authorized-keys];
             nixpkgs.hostPlatform = system;
-            system = { stateVersion = "23.11"; };
+            system = {stateVersion = "23.11";};
           })
           ./kubernetes.nix
         ];
       };
 
-      defaultPackage = nixosConfigurations.config.system.build.vm;
+      packages = rec {
+        vm = nixosConfigurations.config.system.build.vm;
+        default = vm;
+      };
     });
-
 }
